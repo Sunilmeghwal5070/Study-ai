@@ -23,6 +23,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.rotate
+import android.content.ClipboardManager
+import android.content.Context
+import android.content.ClipData
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -41,6 +45,7 @@ fun TranslatorScreen(navController: NavController, viewModel: StudyViewModel, in
     
     val settings by viewModel.userSettings.collectAsState()
     val lang = settings?.language ?: "en"
+    val context = androidx.compose.ui.platform.LocalContext.current
     val isLoading by viewModel.isLoading.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     
@@ -133,8 +138,11 @@ fun TranslatorScreen(navController: NavController, viewModel: StudyViewModel, in
                 }
                 
                 // Swap Button
+                var isSwapped by remember { mutableStateOf(false) }
+                val rotation by androidx.compose.animation.core.animateFloatAsState(targetValue = if (isSwapped) 180f else 0f)
                 IconButton(
                     onClick = {
+                        isSwapped = !isSwapped
                         val tempLang = fromLang
                         fromLang = toLang
                         toLang = tempLang
@@ -148,7 +156,7 @@ fun TranslatorScreen(navController: NavController, viewModel: StudyViewModel, in
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary)
                 ) {
-                    Icon(Icons.Default.SwapHoriz, contentDescription = "Swap", tint = Color.White)
+                    Icon(Icons.Default.SwapHoriz, contentDescription = "Swap", tint = Color.White, modifier = Modifier.rotate(rotation))
                 }
                 
                 // To Language
@@ -223,6 +231,8 @@ fun TranslatorScreen(navController: NavController, viewModel: StudyViewModel, in
                                 coroutineScope.launch {
                                     viewModel.translateText(text, fromLang, toLang) {
                                         translatedText = it
+                                        com.example.ui.utils.MediaUtils.vibrate(context, settings?.vibrationEnabled == true)
+                                        com.example.ui.utils.MediaUtils.speak(it, if(toLang == "Hindi") "hi" else "en", settings?.voiceEnabled == true)
                                     }
                                 }
                             }
@@ -260,10 +270,14 @@ fun TranslatorScreen(navController: NavController, viewModel: StudyViewModel, in
                     ) {
                         Text(toLang, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onPrimaryContainer)
                         Row {
-                            IconButton(onClick = { /* Handle copy */ }) {
+                            IconButton(onClick = {
+                                val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                                val clip = ClipData.newPlainText("Translated Text", translatedText ?: "")
+                                clipboardManager.setPrimaryClip(clip)
+                            }) {
                                 Icon(Icons.Default.ContentCopy, contentDescription = "Copy", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                             }
-                            IconButton(onClick = { /* Handle TTS */ }) {
+                            IconButton(onClick = { com.example.ui.utils.MediaUtils.speak(translatedText ?: "", if(toLang == "Hindi") "hi" else "en", true) }) {
                                 Icon(Icons.Default.VolumeUp, contentDescription = "Listen", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                             }
                         }

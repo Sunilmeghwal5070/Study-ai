@@ -75,18 +75,7 @@ fun SolverScreen(
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
-    val tts = remember(context) { 
-        var textToSpeech: TextToSpeech? = null
-        textToSpeech = TextToSpeech(context) { status ->
-            if (status == TextToSpeech.SUCCESS) {
-                textToSpeech?.language = if (lang == "hi") Locale("hi", "IN") else Locale.US
-            }
-        }
-        textToSpeech
-    }
-    DisposableEffect(Unit) {
-        onDispose { tts.shutdown() }
-    }
+    DisposableEffect(Unit) { onDispose { com.example.ui.utils.MediaUtils.stopSpeaking() } }
     val snackbarHostState = remember { SnackbarHostState() }
 
     if (showSubscriptionDialog) {
@@ -285,6 +274,8 @@ fun SolverScreen(
                             viewModel.getSolverAnswer(subjectId, question, bitmap, lang) {
                                 answer = it
                                 explanation = null
+                                com.example.ui.utils.MediaUtils.vibrate(context, settings?.vibrationEnabled == true)
+                                com.example.ui.utils.MediaUtils.speak(it, lang, settings?.voiceEnabled == true)
                             }
                         }
                     } else {
@@ -316,7 +307,7 @@ fun SolverScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(AppStrings.get("ai_answer", lang), fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.weight(1f))
-                            IconButton(onClick = { tts?.speak(answer!!, TextToSpeech.QUEUE_FLUSH, null, null) }) { Icon(Icons.Default.VolumeUp, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                            IconButton(onClick = { com.example.ui.utils.MediaUtils.speak(answer!!, lang, true) }) { Icon(Icons.Default.VolumeUp, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                             IconButton(onClick = {
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 clipboard.setPrimaryClip(ClipData.newPlainText("Answer", answer!!))

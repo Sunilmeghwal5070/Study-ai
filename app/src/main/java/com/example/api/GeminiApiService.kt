@@ -6,12 +6,14 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import retrofit2.http.Body
 import retrofit2.http.POST
+import retrofit2.http.Url
 import retrofit2.http.Query
 import java.util.concurrent.TimeUnit
 
 interface GeminiApiService {
-    @POST("v1beta/models/gemini-1.5-flash:generateContent")
+    @POST
     suspend fun generateContent(
+        @Url url: String,
         @Query("key") apiKey: String,
         @Body request: GenerateContentRequest
     ): GenerateContentResponse

@@ -16,6 +16,10 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import android.content.Context
+import android.content.ClipboardManager
+import android.content.ClipData
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -41,6 +45,7 @@ fun ChatScreen(navController: NavController, viewModel: StudyViewModel, innerPad
     val settings by viewModel.userSettings.collectAsState()
     val credits = settings?.credits ?: 0
     val lang = settings?.language ?: "en"
+    val context = androidx.compose.ui.platform.LocalContext.current
     
     var showSubscriptionDialog by remember { mutableStateOf(false) }
 
@@ -182,7 +187,10 @@ fun ChatScreen(navController: NavController, viewModel: StudyViewModel, innerPad
                                     val currentMessage = message
                                     message = ""
                                     coroutineScope.launch {
-                                        viewModel.sendChatMessage(currentMessage, lang)
+                                        viewModel.sendChatMessage(currentMessage, lang) { reply ->
+                                            com.example.ui.utils.MediaUtils.vibrate(context, settings?.vibrationEnabled == true)
+                                            com.example.ui.utils.MediaUtils.speak(reply, lang, settings?.voiceEnabled == true)
+                                        }
                                     }
                                 } else {
                                     showSubscriptionDialog = true
@@ -201,27 +209,42 @@ fun ChatScreen(navController: NavController, viewModel: StudyViewModel, innerPad
 @Composable
 fun ChatBubble(message: ChatMessage) {
     val isUser = message.role == "user"
+    val context = androidx.compose.ui.platform.LocalContext.current
     Box(
         modifier = Modifier.fillMaxWidth(),
         contentAlignment = if (isUser) Alignment.CenterEnd else Alignment.CenterStart
     ) {
-        Surface(
-            shape = RoundedCornerShape(
-                topStart = 20.dp,
-                topEnd = 20.dp,
-                bottomStart = if (isUser) 20.dp else 4.dp,
-                bottomEnd = if (isUser) 4.dp else 20.dp
-            ),
-            color = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
-            shadowElevation = 2.dp,
-            modifier = Modifier.widthIn(max = 280.dp)
-        ) {
-            Text(
-                text = message.content,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
-                color = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
-                fontSize = 16.sp
-            )
+        Column(horizontalAlignment = if (isUser) Alignment.End else Alignment.Start) {
+            Surface(
+                shape = RoundedCornerShape(
+                    topStart = 20.dp,
+                    topEnd = 20.dp,
+                    bottomStart = if (isUser) 20.dp else 4.dp,
+                    bottomEnd = if (isUser) 4.dp else 20.dp
+                ),
+                color = if (isUser) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                shadowElevation = 2.dp,
+                modifier = Modifier.widthIn(max = 280.dp)
+            ) {
+                Text(
+                    text = com.example.ui.utils.MarkdownUtils.parseMarkdown(message.content),
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                    color = if (isUser) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontSize = 16.sp
+                )
+            }
+            if (!isUser) {
+                IconButton(
+                    onClick = {
+                        val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("AI Answer", message.content)
+                        clipboardManager.setPrimaryClip(clip)
+                    },
+                    modifier = Modifier.size(24.dp).padding(top = 4.dp)
+                ) {
+                    Icon(Icons.Default.ContentCopy, contentDescription = "Copy", modifier = Modifier.size(16.dp), tint = MaterialTheme.colorScheme.primary)
+                }
+            }
         }
     }
 }

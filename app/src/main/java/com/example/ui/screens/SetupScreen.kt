@@ -93,7 +93,7 @@ fun SetupScreen(navController: NavController, viewModel: StudyViewModel) {
                     shape = RoundedCornerShape(12.dp),
                     colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors()
                 )
-                ExposedDropdownMenu(
+                ExposedDropdownMenu(modifier = Modifier.heightIn(max = 240.dp),
                     expanded = expanded,
                     onDismissRequest = { expanded = false }
                 ) {

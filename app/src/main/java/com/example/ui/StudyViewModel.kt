@@ -163,7 +163,7 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
                 systemInstruction = Content(parts = listOf(Part(text = "You are a helpful tutor. Provide a very short, direct, and simple final answer to the student without any complex formatting, markdown, or LaTeX symbols. Do not explain the steps, just give the final answer in plain text.")), role = "model")
             )
             
-            val response = RetrofitClient.service.generateContent(apiKey, request)
+            val response = RetrofitClient.service.generateContent("v1beta/models/gemini-1.5-flash:generateContent", apiKey, request)
             val answer = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
             
             if (answer != null) {
@@ -192,7 +192,7 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
                 contents = listOf(Content(parts = listOf(Part(text = prompt))))
             )
             
-            val response = RetrofitClient.service.generateContent(apiKey, request)
+            val response = RetrofitClient.service.generateContent("v1beta/models/gemini-1.5-flash:generateContent", apiKey, request)
             val explanation = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
             
             if (explanation != null) {
@@ -218,7 +218,7 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
                 contents = listOf(Content(parts = listOf(Part(text = prompt))))
             )
             
-            val response = RetrofitClient.service.generateContent(apiKey, request)
+            val response = RetrofitClient.service.generateContent("v1beta/models/gemini-1.5-flash:generateContent", apiKey, request)
             val translation = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
             
             if (translation != null) {
@@ -233,7 +233,7 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
         }
     }
 
-    suspend fun sendChatMessage(message: String, lang: String) {
+    suspend fun sendChatMessage(message: String, lang: String, onSuccess: (String) -> Unit = {}) {
         _isLoading.value = true
         _error.value = null
         try {
@@ -261,11 +261,12 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
                 systemInstruction = Content(parts = listOf(Part(text = sysInstruction)), role = "model")
             )
             
-            val response = RetrofitClient.service.generateContent(apiKey, request)
+            val response = RetrofitClient.service.generateContent("v1beta/models/gemini-1.5-flash:generateContent", apiKey, request)
             val reply = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
             
             if (reply != null) {
                 repository.insertChatMessage(ChatMessage(role = "ai", content = reply))
+                onSuccess(reply)
             } else {
                 _error.value = "Failed to get AI reply."
             }

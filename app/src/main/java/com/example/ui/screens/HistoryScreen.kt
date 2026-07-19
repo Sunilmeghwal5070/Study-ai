@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -15,6 +17,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import android.content.Context
+import android.content.ClipboardManager
+import android.content.ClipData
+import android.content.Intent
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -83,19 +89,42 @@ fun HistoryScreen(navController: NavController, viewModel: StudyViewModel, inner
     }
 
     if (selectedItem.value != null) {
+        val context = androidx.compose.ui.platform.LocalContext.current
         AlertDialog(
             onDismissRequest = { selectedItem.value = null },
             title = { Text("Q: ${selectedItem.value!!.question}", maxLines = 3, overflow = TextOverflow.Ellipsis) },
             text = { 
                 LazyColumn {
                     item {
-                        Text(selectedItem.value!!.answer) 
+                        Text(com.example.ui.utils.MarkdownUtils.parseMarkdown(selectedItem.value!!.answer)) 
                     }
                 }
             },
             confirmButton = {
                 TextButton(onClick = { selectedItem.value = null }) {
-                    Text("Close")
+                    Text(com.example.ui.utils.AppStrings.get("close", lang))
+                }
+            },
+            dismissButton = {
+                Row {
+                    IconButton(onClick = {
+                        val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+                        val clip = ClipData.newPlainText("Answer", "Q: ${selectedItem.value!!.question}\n\nA: ${selectedItem.value!!.answer}")
+                        clipboardManager.setPrimaryClip(clip)
+                    }) {
+                        Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
+                    }
+                    IconButton(onClick = {
+                        val sendIntent: Intent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            putExtra(Intent.EXTRA_TEXT, "Q: ${selectedItem.value!!.question}\n\nA: ${selectedItem.value!!.answer}")
+                            type = "text/plain"
+                        }
+                        val shareIntent = Intent.createChooser(sendIntent, null)
+                        context.startActivity(shareIntent)
+                    }) {
+                        Icon(Icons.Default.Share, contentDescription = "Share")
+                    }
                 }
             }
         )

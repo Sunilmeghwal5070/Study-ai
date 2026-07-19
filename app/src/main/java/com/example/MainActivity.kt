@@ -40,6 +40,7 @@ class MainActivity : ComponentActivity() {
         val viewModel = ViewModelProvider(this, factory)[StudyViewModel::class.java]
         
         val networkTracker = NetworkStatusTracker(this)
+        com.example.ui.utils.MediaUtils.initTTS(this)
         
         setContent {
             val navController = rememberNavController()
