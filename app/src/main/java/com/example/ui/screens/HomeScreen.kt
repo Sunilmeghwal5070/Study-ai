@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.WorkspacePremium
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -41,6 +42,11 @@ fun HomeScreen(navController: NavController, viewModel: StudyViewModel, innerPad
     val name = settings?.name ?: AppStrings.get("student", lang)
     val role = settings?.userClass ?: AppStrings.get("ai_study_assistant", lang)
     val credits = settings?.credits ?: 20
+    val favoriteSubjects = settings?.favoriteSubjects?.split(",")?.filter { it.isNotEmpty() }?.toSet() ?: emptySet()
+    
+    val sortedSubjects = remember(favoriteSubjects) {
+        subjects.sortedByDescending { favoriteSubjects.contains(it.id) }
+    }
 
     LazyVerticalGrid(
         columns = GridCells.Fixed(2),
@@ -122,16 +128,29 @@ fun HomeScreen(navController: NavController, viewModel: StudyViewModel, innerPad
             }
         }
 
-        items(subjects) { subject ->
-            SubjectCard(subject = subject, lang = lang) {
-                navController.navigate(Screen.Solver.createRoute(subject.id, AppStrings.get(subject.nameKey, lang)))
-            }
+        items(sortedSubjects, key = { it.id }) { subject ->
+            val isFavorite = favoriteSubjects.contains(subject.id)
+            SubjectCard(
+                subject = subject, 
+                lang = lang,
+                isFavorite = isFavorite,
+                onLongClick = { viewModel.toggleFavoriteSubject(subject.id) },
+                onClick = {
+                    navController.navigate(Screen.Solver.createRoute(subject.id, AppStrings.get(subject.nameKey, lang)))
+                }
+            )
         }
     }
 }
 
 @Composable
-fun SubjectCard(subject: Subject, lang: String, onClick: () -> Unit) {
+fun SubjectCard(
+    subject: Subject, 
+    lang: String, 
+    isFavorite: Boolean = false,
+    onLongClick: (() -> Unit)? = null,
+    onClick: () -> Unit
+) {
     var isVisible by remember { mutableStateOf(false) }
     
     LaunchedEffect(Unit) {
@@ -155,7 +174,7 @@ fun SubjectCard(subject: Subject, lang: String, onClick: () -> Unit) {
             .fillMaxWidth()
             .height(130.dp)
             .graphicsLayer(scaleX = scale, scaleY = scale, alpha = alpha)
-            .bounceClick { onClick() },
+            .bounceClick(onLongClick = onLongClick, onClick = onClick),
         shape = RoundedCornerShape(24.dp),
         shadowElevation = 8.dp,
     ) {
@@ -180,8 +199,13 @@ fun SubjectCard(subject: Subject, lang: String, onClick: () -> Unit) {
                 verticalArrangement = Arrangement.Top,
                 horizontalAlignment = Alignment.Start
             ) {
-                Box(modifier = Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.2f)).padding(8.dp)) {
-                    Icon(subject.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
+                    Box(modifier = Modifier.clip(CircleShape).background(Color.White.copy(alpha = 0.2f)).padding(8.dp)) {
+                        Icon(subject.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(24.dp))
+                    }
+                    if (isFavorite) {
+                        Icon(Icons.Default.Star, contentDescription = "Favorite", tint = Color(0xFFFFD700), modifier = Modifier.size(24.dp))
+                    }
                 }
                 Spacer(modifier = Modifier.weight(1f))
                 Text(

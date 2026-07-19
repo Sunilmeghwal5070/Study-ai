@@ -41,4 +41,13 @@ object RetrofitClient {
             .build()
             .create(GeminiApiService::class.java)
     }
+
+    val picoService: PicoApiService by lazy {
+        Retrofit.Builder()
+            .baseUrl("https://backend.buildpicoapps.com/")
+            .client(okHttpClient)
+            .addConverterFactory(MoshiConverterFactory.create())
+            .build()
+            .create(PicoApiService::class.java)
+    }
 }

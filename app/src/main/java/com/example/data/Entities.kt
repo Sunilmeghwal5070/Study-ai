@@ -15,7 +15,8 @@ data class UserSettings(
     val voiceEnabled: Boolean = true,
     val autoOcr: Boolean = true,
     val vibrationEnabled: Boolean = true,
-    val setupCompleted: Boolean = false
+    val setupCompleted: Boolean = false,
+    val favoriteSubjects: String = ""
 )
 
 @Entity(tableName = "history")

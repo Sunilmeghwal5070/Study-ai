@@ -1,7 +1,7 @@
 package com.example.ui.utils
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.clickable
+
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -17,7 +17,11 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 
-fun Modifier.bounceClick(onClick: () -> Unit) = composed {
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+
+@OptIn(ExperimentalFoundationApi::class)
+fun Modifier.bounceClick(onLongClick: (() -> Unit)? = null, onClick: () -> Unit) = composed {
     var isPressed by remember { mutableStateOf(false) }
     val scale by animateFloatAsState(if (isPressed) 0.90f else 1f, label = "bounce")
 
@@ -36,10 +40,11 @@ fun Modifier.bounceClick(onClick: () -> Unit) = composed {
                 }
             }
         }
-        .clickable(
+        .combinedClickable(
             interactionSource = remember { MutableInteractionSource() },
             indication = null,
-            onClick = onClick
+            onClick = onClick,
+            onLongClick = onLongClick
         )
 }
 

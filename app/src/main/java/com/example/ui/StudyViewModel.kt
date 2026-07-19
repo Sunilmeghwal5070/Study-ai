@@ -13,6 +13,7 @@ import com.example.api.GenerateContentRequest
 import com.example.api.InlineData
 import com.example.api.Part
 import com.example.api.RetrofitClient
+import com.example.api.PicoRequest
 import com.example.data.ChatMessage
 import com.example.data.HistoryItem
 import com.example.data.StudyRepository
@@ -60,6 +61,18 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
         viewModelScope.launch {
             repository.saveUserSettings(settings)
         }
+    }
+
+    fun toggleFavoriteSubject(subjectId: String) {
+        val currentSettings = userSettings.value ?: return
+        val currentFavorites = currentSettings.favoriteSubjects.split(",").filter { it.isNotEmpty() }.toMutableSet()
+        if (currentFavorites.contains(subjectId)) {
+            currentFavorites.remove(subjectId)
+        } else {
+            currentFavorites.add(subjectId)
+        }
+        val newFavoritesStr = currentFavorites.joinToString(",")
+        saveSettings(currentSettings.copy(favoriteSubjects = newFavoritesStr))
     }
 
     fun completeSetup(name: String, userClass: String, language: String) {
@@ -136,15 +149,9 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
         _isLoading.value = true
         _error.value = null
         try {
-            val apiKey = BuildConfig.GEMINI_API_KEY
-            if (apiKey.isEmpty() || apiKey == "MY_GEMINI_API_KEY") {
-                _error.value = "API Key is missing. Please configure it in Secrets."
-                return
-            }
-
-            val parts = mutableListOf<Part>()
             val langInstruction = if (lang == "hi") "Please answer in Hindi." else "Please answer in English."
-            var promptText = "Subject: $subject. "
+            val sysPrompt = "You are a helpful tutor. Provide a very short, direct, and simple final answer to the student without any complex formatting, markdown, or LaTeX symbols. Do not explain the steps, just give the final answer in plain text.\n"
+            var promptText = sysPrompt + "Subject: $subject. "
             if (question.isNotEmpty()) {
                 promptText += "Question: $question. "
             } else if (image != null) {
@@ -152,19 +159,9 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
             }
             promptText += langInstruction
             
-            parts.add(Part(text = promptText))
-            
-            if (image != null) {
-                parts.add(Part(inlineData = InlineData(mimeType = "image/jpeg", data = image.toBase64())))
-            }
-
-            val request = GenerateContentRequest(
-                contents = listOf(Content(parts = parts, role = "user")),
-                systemInstruction = Content(parts = listOf(Part(text = "You are a helpful tutor. Provide a very short, direct, and simple final answer to the student without any complex formatting, markdown, or LaTeX symbols. Do not explain the steps, just give the final answer in plain text.")), role = "model")
-            )
-            
-            val response = RetrofitClient.service.generateContent("v1beta/models/gemini-1.5-flash:generateContent", apiKey, request)
-            val answer = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+            val request = PicoRequest(prompt = promptText)
+            val response = RetrofitClient.picoService.generateContent("aero/run/llm-api?pk=v1-Z0FBQUFBQnBlNm5yQzU1anRkLTFkZHp4NDZESmVjakhCYXBBSVBEcEdHTnY3RGpmc3AxOFJ6MmNHTjdURHV0TExVNnN4VXl5a0d4Z2taeWZnYjNhcktHZjdzYUQwZEVlU1E9PQ==", request)
+            val answer = response.text
             
             if (answer != null) {
                 repository.insertHistoryItem(HistoryItem(question = question.ifEmpty { "Image Question" }, answer = answer, language = lang))
@@ -184,16 +181,12 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
         _isLoading.value = true
         _error.value = null
         try {
-            val apiKey = BuildConfig.GEMINI_API_KEY
             val langInstruction = if (lang == "hi") "कृपया हिंदी में समझाएं।" else "Please explain in English."
             val prompt = "Explain this answer in simple steps for a student: \"$answer\". $langInstruction Provide a clear, step-by-step breakdown that helps understand the concept. Do NOT use any special LaTeX math symbols like $$ or markdown symbols. Use plain text formatting and simple structure so anyone can understand."
             
-            val request = GenerateContentRequest(
-                contents = listOf(Content(parts = listOf(Part(text = prompt))))
-            )
-            
-            val response = RetrofitClient.service.generateContent("v1beta/models/gemini-1.5-flash:generateContent", apiKey, request)
-            val explanation = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+            val request = PicoRequest(prompt = prompt)
+            val response = RetrofitClient.picoService.generateContent("aero/run/llm-api?pk=v1-Z0FBQUFBQnBlNm5yQzU1anRkLTFkZHp4NDZESmVjakhCYXBBSVBEcEdHTnY3RGpmc3AxOFJ6MmNHTjdURHV0TExVNnN4VXl5a0d4Z2taeWZnYjNhcktHZjdzYUQwZEVlU1E9PQ==", request)
+            val explanation = response.text
             
             if (explanation != null) {
                 onSuccess(explanation)
@@ -211,15 +204,11 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
         _isLoading.value = true
         _error.value = null
         try {
-            val apiKey = BuildConfig.GEMINI_API_KEY
             val prompt = "Translate the following text from $fromLang to $toLang: \"$text\". Only provide the translation, no explanations."
             
-            val request = GenerateContentRequest(
-                contents = listOf(Content(parts = listOf(Part(text = prompt))))
-            )
-            
-            val response = RetrofitClient.service.generateContent("v1beta/models/gemini-1.5-flash:generateContent", apiKey, request)
-            val translation = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+            val request = PicoRequest(prompt = prompt)
+            val response = RetrofitClient.picoService.generateContent("aero/run/llm-api?pk=v1-Z0FBQUFBQnBlNm5yQzU1anRkLTFkZHp4NDZESmVjakhCYXBBSVBEcEdHTnY3RGpmc3AxOFJ6MmNHTjdURHV0TExVNnN4VXl5a0d4Z2taeWZnYjNhcktHZjdzYUQwZEVlU1E9PQ==", request)
+            val translation = response.text
             
             if (translation != null) {
                 onSuccess(translation)
@@ -237,32 +226,27 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
         _isLoading.value = true
         _error.value = null
         try {
-            val apiKey = BuildConfig.GEMINI_API_KEY
             repository.insertChatMessage(ChatMessage(role = "user", content = message))
             deductCredit()
             
             val langContext = if (lang == "hi") "Reply in Hindi." else "Reply in English."
-            val sysInstruction = "You are a helpful AI study assistant. $langContext"
+            val sysInstruction = "You are a helpful AI study assistant. $langContext\n"
             
             // Build conversation history (limit to last 10 messages)
             val currentHistory = chatMessages.value.takeLast(10).filter { it.id > 0 } // exclude pending
-            val contents = currentHistory.map { msg ->
-                val apiRole = if (msg.role == "ai") "model" else "user"
-                Content(parts = listOf(Part(text = msg.content)), role = apiRole)
-            }.toMutableList()
-            
-            // In case the flow hasn't updated yet, ensure the latest message is there
-            if (contents.isEmpty() || contents.last().parts.firstOrNull()?.text != message) {
-                contents.add(Content(parts = listOf(Part(text = message)), role = "user"))
+            var conversation = sysInstruction
+            for (msg in currentHistory) {
+                 val r = if (msg.role == "ai") "Assistant" else "User"
+                 conversation += "$r: ${msg.content}\n"
             }
+            if (currentHistory.isEmpty() || currentHistory.last().content != message) {
+                 conversation += "User: $message\n"
+            }
+            conversation += "Assistant:"
             
-            val request = GenerateContentRequest(
-                contents = contents,
-                systemInstruction = Content(parts = listOf(Part(text = sysInstruction)), role = "model")
-            )
-            
-            val response = RetrofitClient.service.generateContent("v1beta/models/gemini-1.5-flash:generateContent", apiKey, request)
-            val reply = response.candidates?.firstOrNull()?.content?.parts?.firstOrNull()?.text
+            val request = PicoRequest(prompt = conversation)
+            val response = RetrofitClient.picoService.generateContent("aero/run/llm-api?pk=v1-Z0FBQUFBQnBlNm5yQzU1anRkLTFkZHp4NDZESmVjakhCYXBBSVBEcEdHTnY3RGpmc3AxOFJ6MmNHTjdURHV0TExVNnN4VXl5a0d4Z2taeWZnYjNhcktHZjdzYUQwZEVlU1E9PQ==", request)
+            val reply = response.text
             
             if (reply != null) {
                 repository.insertChatMessage(ChatMessage(role = "ai", content = reply))
