@@ -9,6 +9,7 @@ import android.os.Build
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.widget.Toast
 import android.content.Intent
 import android.speech.tts.TextToSpeech
 import java.util.Locale
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import com.example.ui.components.TtsIconButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -307,10 +309,11 @@ fun SolverScreen(
                     Column(modifier = Modifier.padding(16.dp)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Text(AppStrings.get("ai_answer", lang), fontWeight = FontWeight.Bold, fontSize = 20.sp, modifier = Modifier.weight(1f))
-                            IconButton(onClick = { com.example.ui.utils.MediaUtils.speak(answer!!, lang, true) }) { Icon(Icons.Default.VolumeUp, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+                            TtsIconButton(text = answer!!, lang = lang, voiceEnabled = true)
                             IconButton(onClick = {
                                 val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 clipboard.setPrimaryClip(ClipData.newPlainText("Answer", answer!!))
+                                Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
                             }) { Icon(Icons.Default.ContentCopy, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
                             IconButton(onClick = {
                                 val sendIntent = Intent().apply { action = Intent.ACTION_SEND; putExtra(Intent.EXTRA_TEXT, answer!!); type = "text/plain" }

@@ -149,7 +149,7 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
         _isLoading.value = true
         _error.value = null
         try {
-            val langInstruction = if (lang == "hi") "Please answer in Hindi." else "Please answer in English."
+            val langInstruction = if (lang == "hi") "Regardless of the language I asked in, you MUST answer entirely in Hindi." else "Regardless of the language I asked in, you MUST answer entirely in English."
             val sysPrompt = "You are a helpful tutor. Provide a very short, direct, and simple final answer to the student without any complex formatting, markdown, or LaTeX symbols. Do not explain the steps, just give the final answer in plain text.\n"
             var promptText = sysPrompt + "Subject: $subject. "
             if (question.isNotEmpty()) {
@@ -181,7 +181,7 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
         _isLoading.value = true
         _error.value = null
         try {
-            val langInstruction = if (lang == "hi") "कृपया हिंदी में समझाएं।" else "Please explain in English."
+            val langInstruction = if (lang == "hi") "Regardless of the language I asked in, you MUST explain entirely in Hindi." else "Regardless of the language I asked in, you MUST explain entirely in English."
             val prompt = "Explain this answer in simple steps for a student: \"$answer\". $langInstruction Provide a clear, step-by-step breakdown that helps understand the concept. Do NOT use any special LaTeX math symbols like $$ or markdown symbols. Use plain text formatting and simple structure so anyone can understand."
             
             val request = PicoRequest(prompt = prompt)
@@ -229,7 +229,7 @@ class StudyViewModel(private val repository: StudyRepository) : ViewModel() {
             repository.insertChatMessage(ChatMessage(role = "user", content = message))
             deductCredit()
             
-            val langContext = if (lang == "hi") "Reply in Hindi." else "Reply in English."
+            val langContext = if (lang == "hi") "Regardless of the user's language, you MUST reply entirely in Hindi." else "Regardless of the user's language, you MUST reply entirely in English."
             val sysInstruction = "You are a helpful AI study assistant. $langContext\n"
             
             // Build conversation history (limit to last 10 messages)

@@ -14,9 +14,11 @@ import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.SmartToy
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import com.example.ui.components.TtsIconButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import android.content.Context
+import android.widget.Toast
 import android.content.ClipboardManager
 import android.content.ClipData
 import androidx.compose.material.icons.filled.ContentCopy
@@ -239,6 +241,7 @@ fun ChatBubble(message: ChatMessage) {
                         val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         val clip = ClipData.newPlainText("AI Answer", message.content)
                         clipboardManager.setPrimaryClip(clip)
+                                Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
                     },
                     modifier = Modifier.size(24.dp).padding(top = 4.dp)
                 ) {

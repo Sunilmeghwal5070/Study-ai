@@ -18,6 +18,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import android.content.Context
+import android.widget.Toast
 import android.content.ClipboardManager
 import android.content.ClipData
 import android.content.Intent
@@ -111,6 +112,7 @@ fun HistoryScreen(navController: NavController, viewModel: StudyViewModel, inner
                         val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                         val clip = ClipData.newPlainText("Answer", "Q: ${selectedItem.value!!.question}\n\nA: ${selectedItem.value!!.answer}")
                         clipboardManager.setPrimaryClip(clip)
+                                Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
                     }) {
                         Icon(Icons.Default.ContentCopy, contentDescription = "Copy")
                     }

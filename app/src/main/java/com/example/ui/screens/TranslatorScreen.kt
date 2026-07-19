@@ -21,11 +21,13 @@ import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import com.example.ui.components.TtsIconButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import android.content.ClipboardManager
 import android.content.Context
+import android.widget.Toast
 import android.content.ClipData
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -274,12 +276,11 @@ fun TranslatorScreen(navController: NavController, viewModel: StudyViewModel, in
                                 val clipboardManager = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
                                 val clip = ClipData.newPlainText("Translated Text", translatedText ?: "")
                                 clipboardManager.setPrimaryClip(clip)
+                                Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT).show()
                             }) {
                                 Icon(Icons.Default.ContentCopy, contentDescription = "Copy", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
                             }
-                            IconButton(onClick = { com.example.ui.utils.MediaUtils.speak(translatedText ?: "", if(toLang == "Hindi") "hi" else "en", true) }) {
-                                Icon(Icons.Default.VolumeUp, contentDescription = "Listen", tint = MaterialTheme.colorScheme.onPrimaryContainer, modifier = Modifier.size(20.dp))
-                            }
+                            TtsIconButton(text = translatedText ?: "", lang = if(toLang == "Hindi") "hi" else "en", voiceEnabled = true)
                         }
                     }
                     

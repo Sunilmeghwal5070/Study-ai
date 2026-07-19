@@ -9,25 +9,43 @@ import android.speech.tts.TextToSpeech
 import android.speech.tts.Voice
 import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Locale
+import android.speech.tts.UtteranceProgressListener
 
 object MediaUtils {
     var tts: TextToSpeech? = null
     val isTtsReady = MutableStateFlow(false)
+    val playingUtteranceId = MutableStateFlow<String?>(null)
 
     fun initTTS(context: Context) {
         if (tts == null) {
             tts = TextToSpeech(context.applicationContext) { status ->
                 if (status == TextToSpeech.SUCCESS) {
                     isTtsReady.value = true
+                    tts?.setOnUtteranceProgressListener(object : UtteranceProgressListener() {
+                        override fun onStart(utteranceId: String?) {
+                            playingUtteranceId.value = utteranceId
+                        }
+                        override fun onDone(utteranceId: String?) {
+                            if (playingUtteranceId.value == utteranceId) {
+                                playingUtteranceId.value = null
+                            }
+                        }
+                        @Deprecated("Deprecated in Java")
+                        override fun onError(utteranceId: String?) {
+                            if (playingUtteranceId.value == utteranceId) {
+                                playingUtteranceId.value = null
+                            }
+                        }
+                    })
                 }
             }
         }
     }
 
-    fun speak(text: String, lang: String, voiceEnabled: Boolean) {
-        if (!voiceEnabled) return
-        val ttsInstance = tts ?: return
-        if (!isTtsReady.value) return
+    fun speak(text: String, lang: String, voiceEnabled: Boolean): String? {
+        if (!voiceEnabled) return null
+        val ttsInstance = tts ?: return null
+        if (!isTtsReady.value) return null
 
         val locale = if (lang == "hi") Locale("hi", "IN") else Locale.US
         ttsInstance.language = locale
@@ -55,11 +73,14 @@ object MediaUtils {
             // Ignore
         }
 
-        ttsInstance.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+        val utteranceId = "utterance_${System.currentTimeMillis()}"
+        ttsInstance.speak(text, TextToSpeech.QUEUE_FLUSH, null, utteranceId)
+        return utteranceId
     }
 
     fun stopSpeaking() {
         tts?.stop()
+        playingUtteranceId.value = null
     }
 
     fun vibrate(context: Context, vibrationEnabled: Boolean) {
