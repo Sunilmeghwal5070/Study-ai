@@ -1,0 +1,1 @@
+sed -i 's/val lang = settings?.language ?: "en"/val lang = settings?.language ?: "en"\n    val selectedItem = remember { mutableStateOf<com.example.data.HistoryItem?>(null) }/g' app/src/main/java/com/example/ui/screens/HistoryScreen.kt

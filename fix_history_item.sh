@@ -1,0 +1,1 @@
+sed -i 's/modifier = Modifier.fillMaxWidth(),/modifier = Modifier.fillMaxWidth().androidx.compose.foundation.clickable { selectedItem.value = item },/g' app/src/main/java/com/example/ui/screens/HistoryScreen.kt

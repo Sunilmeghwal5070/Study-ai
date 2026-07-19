@@ -1,0 +1,6 @@
+{
+  "name": "Study AI",
+  "description": "Smart Learning Assistant for students. AI-powered solver, chat, and translator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

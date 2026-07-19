@@ -1,0 +1,1 @@
+sed -i 's/enabled = !isLoading && (question.isNotBlank() || bitmap != null),/enabled = (question.isNotBlank() || bitmap != null),\n                isLoading = isLoading,/g' app/src/main/java/com/example/ui/screens/SolverScreen.kt
