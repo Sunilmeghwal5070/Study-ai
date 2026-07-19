@@ -1,0 +1,2 @@
+sed -i 's/cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)//g' app/src/main/java/com/example/ui/screens/SolverScreen.kt
+sed -i 's/imagePickerLauncher.launch("image\/\*")/imagePickerLauncher.launch(com.canhub.cropper.CropImageContractOptions(uri = null, cropImageOptions = com.canhub.cropper.CropImageOptions(imageSourceIncludeGallery = true, imageSourceIncludeCamera = true)))/g' app/src/main/java/com/example/ui/screens/SolverScreen.kt

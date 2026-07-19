@@ -44,6 +44,8 @@ import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.canhub.cropper.CropImageContractOptions
+import com.canhub.cropper.CropImageOptions
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.example.ui.StudyViewModel
@@ -98,7 +100,8 @@ fun SolverScreen(
         )
     }
 
-    val imagePickerLauncher = rememberLauncherForActivityResult(contract = ActivityResultContracts.GetContent()) { uri: Uri? ->
+    val imagePickerLauncher = rememberLauncherForActivityResult(contract = com.canhub.cropper.CropImageContract()) { result ->
+        val uri = result.uriContent
         imageUri = uri
         uri?.let {
             bitmap = if (Build.VERSION.SDK_INT < 28) {
@@ -111,21 +114,16 @@ fun SolverScreen(
         }
     }
 
-    val micPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) {
-            coroutineScope.launch { snackbarHostState.showSnackbar("Mic permission granted") }
-        } else {
-            coroutineScope.launch { snackbarHostState.showSnackbar("Mic permission denied") }
+    val speechRecognizerLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == android.app.Activity.RESULT_OK) {
+            val data = result.data?.getStringArrayListExtra(android.speech.RecognizerIntent.EXTRA_RESULTS)
+            val spokenText = data?.get(0) ?: ""
+            if (spokenText.isNotEmpty()) {
+                question = spokenText
+            }
         }
     }
     
-    val cameraPermissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-        if (isGranted) {
-            coroutineScope.launch { snackbarHostState.showSnackbar("Camera permission granted") }
-        } else {
-            coroutineScope.launch { snackbarHostState.showSnackbar("Camera permission denied") }
-        }
-    }
 
     LaunchedEffect(error) {
         if (error != null) {
@@ -196,7 +194,14 @@ fun SolverScreen(
                             .height(150.dp),
                         shape = RoundedCornerShape(16.dp),
                         trailingIcon = {
-                            IconButton(onClick = { micPermissionLauncher.launch(android.Manifest.permission.RECORD_AUDIO) }) {
+                            IconButton(onClick = { try {
+                                    val intent = android.content.Intent(android.speech.RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+                                        putExtra(android.speech.RecognizerIntent.EXTRA_LANGUAGE_MODEL, android.speech.RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+                                    }
+                                    speechRecognizerLauncher.launch(intent)
+                                } catch (e: Exception) {
+                                    coroutineScope.launch { snackbarHostState.showSnackbar("Speech recognition not supported") }
+                                } }) {
                                 Icon(Icons.Default.Mic, contentDescription = "Mic")
                             }
                         }
@@ -212,8 +217,8 @@ fun SolverScreen(
                                 .clip(RoundedCornerShape(16.dp))
                                 .background(MaterialTheme.colorScheme.surfaceVariant)
                                 .bounceClick {
-                                    cameraPermissionLauncher.launch(android.Manifest.permission.CAMERA)
-                                    imagePickerLauncher.launch("image/*") 
+                                    
+                                    imagePickerLauncher.launch(CropImageContractOptions(uri = null, cropImageOptions = CropImageOptions(imageSourceIncludeGallery = true, imageSourceIncludeCamera = true))) 
                                 },
                             contentAlignment = Alignment.Center
                         ) {

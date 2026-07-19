@@ -74,7 +74,7 @@ fun HomeScreen(navController: NavController, viewModel: StudyViewModel, innerPad
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
                             Box(
                                 modifier = Modifier
                                     .size(56.dp)
@@ -85,9 +85,9 @@ fun HomeScreen(navController: NavController, viewModel: StudyViewModel, innerPad
                                 Icon(Icons.Default.Person, contentDescription = null, tint = Color.White, modifier = Modifier.size(32.dp))
                             }
                             Spacer(modifier = Modifier.width(16.dp))
-                            Column {
-                                Text(text = "${AppStrings.get("hello", lang)}, $name!", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.White)
-                                Text(text = role, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.8f))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(text = "${AppStrings.get("hello", lang)}, $name!", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = Color.White, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                                Text(text = role, style = MaterialTheme.typography.bodyMedium, color = Color.White.copy(alpha = 0.8f), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                             }
                         }
                         
@@ -115,7 +115,7 @@ fun HomeScreen(navController: NavController, viewModel: StudyViewModel, innerPad
         
         item(span = { GridItemSpan(2) }) {
             Spacer(modifier = Modifier.height(8.dp))
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.fillMaxWidth()) {
                 Text(AppStrings.get("select_subject", lang), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                 Spacer(modifier = Modifier.weight(1f))
                 Icon(Icons.Default.AutoAwesome, contentDescription = null, tint = MaterialTheme.colorScheme.primary)

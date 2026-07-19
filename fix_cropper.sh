@@ -1,0 +1,1 @@
+sed -i 's/import androidx.activity.result.contract.ActivityResultContracts/import androidx.activity.result.contract.ActivityResultContracts\nimport com.canhub.cropper.CropImageContract\nimport com.canhub.cropper.CropImageContractOptions\nimport com.canhub.cropper.CropImageOptions/g' app/src/main/java/com/example/ui/screens/SolverScreen.kt

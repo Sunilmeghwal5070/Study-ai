@@ -1,3 +1,4 @@
+cat << 'INNER_EOF' > app/src/main/java/com/example/ui/components/BottomNavBar.kt
 package com.example.ui.components
 
 import androidx.compose.foundation.background
@@ -102,3 +103,4 @@ fun NavItem(icon: ImageVector, label: String, isSelected: Boolean, onClick: () -
         }
     }
 }
+INNER_EOF

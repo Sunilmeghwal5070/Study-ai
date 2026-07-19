@@ -1,0 +1,1 @@
+sed -i 's/imagePickerLauncher.launch("image\/\*")/imagePickerLauncher.launch(CropImageContractOptions(uri = null, cropImageOptions = CropImageOptions(imageSourceIncludeGallery = true, imageSourceIncludeCamera = true)))/g' app/src/main/java/com/example/ui/screens/SolverScreen.kt
